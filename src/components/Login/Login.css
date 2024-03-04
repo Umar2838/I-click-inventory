@@ -1,0 +1,20 @@
+.login-container{
+  background-image: url("../../assets//bg.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+    min-height: 100vh;
+  background-color: #fff;
+}
+.wrapper{
+    display: flex;
+    justify-content:space-between;
+    align-items: center;
+padding-top: 50px;
+}
+.brand-div{
+    width: 50%;
+    height: 80vh;
+   text-align: center;
+   color: #343B3F;
+    border: 2px solid #000;
+}
