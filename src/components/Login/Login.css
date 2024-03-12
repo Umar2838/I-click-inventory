@@ -1,20 +1,53 @@
+
 .login-container{
   background-image: url("../../assets//bg.png");
   background-repeat: no-repeat;
   background-size: contain;
-    min-height: 100vh;
   background-color: #fff;
+min-height: 100vh;
 }
+
 .wrapper{
     display: flex;
     justify-content:space-between;
     align-items: center;
-padding-top: 50px;
 }
 .brand-div{
     width: 50%;
     height: 80vh;
    text-align: center;
-   color: #343B3F;
-    border: 2px solid #000;
+   margin-top: 50px;
+}
+h1{
+  font-size: 48px;
+  font-family: "Roboto", sans-serif;
+font-weight: 900;
+padding-top: 10px;
+margin-bottom: -20px;
+color: #343B3F;
+}
+p{
+  padding: 20px 100px;
+text-align: justify;
+color: #343B3F;
+
+}
+.form-div{
+  width: 50%;
+    height: 80vh;
+   text-align: center;
+   margin-top: 50px;
+   background-color: #343B3F;
+   border-radius: 50px 0px 0px 50px;
+}
+label.ant-form-item-required{
+  color: #fff !important;
+}
+h2{
+  font-family: "Roboto", sans-serif;
+  font-size: 48px;
+  color: #dadada;
+  font-weight: 900;
+  text-align:start;
+  padding-left: 20px;
 }
