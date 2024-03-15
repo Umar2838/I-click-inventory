@@ -4,6 +4,9 @@ import { Button, Form, Input } from 'antd';
 import { app, auth, signInWithEmailAndPassword } from "../Firebase/Firebase"
 import { useNavigate } from 'react-router-dom';
 import HashLoader from "react-spinners/HashLoader"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 const Login = () => {
   const navigate = useNavigate()
   const [loader,setLoder] = useState(false)
@@ -16,12 +19,26 @@ const Login = () => {
         // Signed in 
         const user = userCredential.user;
         setLoder(false)
+        console.log(user)
         navigate("/inventory")
       })
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
+        setLoder(false)
         console.log(errorMessage)
+        toast.error(errorMessage, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+         
+          });
+  
       });
   };
   const onFinishFailed = (errorInfo) => {
@@ -30,6 +47,18 @@ const Login = () => {
 
   return (
     <div className='login-container'>
+            <ToastContainer
+position="top-right"
+autoClose={5000}
+hideProgressBar={false}
+newestOnTop={false}
+closeOnClick
+rtl={false}
+pauseOnFocusLoss
+draggable
+pauseOnHover
+theme="dark"
+/>
       <div className='wrapper' >
         <div className='brand-div' >
           <h1>I-Click Inventory</h1>
@@ -94,6 +123,7 @@ const Login = () => {
               <Button type='primary' style={{ width: '100%' }} htmlType="submit">
                 {loader ?<HashLoader color='#fff' size={20} />  : "Submit" }
               </Button>
+        
             </Form.Item>
           </Form>
         </div>
