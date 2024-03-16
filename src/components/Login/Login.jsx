@@ -73,12 +73,13 @@ theme="dark"
             }}
             wrapperCol={{
               span: 16,
+              
             }}
             style={{
               maxWidth: 600,
               paddingTop: 30,
-              marginLeft: -90
-
+              marginLeft: -90,
+    
             }}
             initialValues={{
               remember: true,
@@ -120,8 +121,9 @@ theme="dark"
                 span: 16,
               }}
             >
-              <Button type='primary' style={{ width: '100%' }} htmlType="submit">
-                {loader ?<HashLoader color='#fff' size={20} />  : "Submit" }
+              <Button type='primary' style={{ width: '100%' ,backgroundColor:"#5458a7",color:"#fff",border:"none",fontFamily:'Gill Sans',
+ }} htmlType="submit">
+                {loader ?<HashLoader color='#fff' size={20} />  : "Login" }
               </Button>
         
             </Form.Item>
