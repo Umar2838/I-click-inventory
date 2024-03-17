@@ -73,3 +73,32 @@ margin-right:5px ;
 .graph{
     padding:60px 0px;
 }
+
+/* New Order */
+.order-header{
+    background-color: #5458a7;
+    color: #fff;
+    height: 40px;
+    line-height: 40px;
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 20px;
+    font-weight: 600;   
+    margin-right: 10px;
+    border-radius: 8px;
+}
+.orderbtn{
+    position: absolute;
+    top: 94px;
+    color: #000;
+    right: 20px;
+    background-color: #fff !important;
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+}
+.ant-btn:hover{
+    background-color: #E5E5E5 !important;
+    color: #000 !important;
+}
+label.ant-form-item-required{
+    color: #000 !important;
+}
