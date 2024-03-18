@@ -35,7 +35,7 @@ const Login = () => {
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
-          theme: "dark",
+          theme: "light",
          
           });
   
@@ -57,7 +57,7 @@ rtl={false}
 pauseOnFocusLoss
 draggable
 pauseOnHover
-theme="dark"
+theme="light"
 />
       <div className='wrapper' >
         <div className='brand-div' >

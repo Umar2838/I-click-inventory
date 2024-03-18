@@ -1,7 +1,9 @@
-import React, {useState} from 'react';
+import React, {useState,useRef} from 'react';
 import { Layout, Flex } from 'antd';
 import "./Layout.css"
 import { FiLogOut } from "react-icons/fi";
+import {toast,ToastContainer} from "react-toastify"
+import 'react-toastify/dist/ReactToastify.css';
 const { Header, Footer, Sider, Content } = Layout;
 import {useNavigate} from "react-router-dom"
 import {auth, signOut } from '../Firebase/Firebase';
@@ -67,7 +69,7 @@ const layoutStyle = {
 const Layoutstyle = () => {
   const navigate = useNavigate()
   const [activeDiv, setActiveDiv] = useState('stats');
-
+  const formRef = useRef();
   const handleDivClick = (divName) => {
     setActiveDiv(divName);
   };
@@ -118,9 +120,11 @@ const Layoutstyle = () => {
   };
   const handleOk = () => {
     setIsModalOpen(false);
+    formRef.current.resetFields(); 
   };
   const handleCancel = () => {
     setIsModalOpen(false);
+    formRef.current.resetFields(); 
   }
 
 // new order form 
@@ -151,6 +155,18 @@ const formItemLayout = {
 
 const onFinish = (values) => {
   console.log('Success:', values);  
+  toast.success("Customer order placed", {
+    position: "top-right",
+    autoClose: 5000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "light",
+   
+    });
+     
 };
 const onFinishFailed = (errorInfo) => {
   console.log('Failed:', errorInfo);
@@ -158,6 +174,7 @@ const onFinishFailed = (errorInfo) => {
   return(
 
     <Flex gap="middle" wrap="wrap">
+      
     <Layout style={layoutStyle}>
     <Sider width="12%" style={siderStyle}>
       <div className='slider' >
@@ -241,15 +258,6 @@ data={{
   </div>
   : ""
 }
-
-{
-  activeDiv === "newOrder" ?      
-       <div className='order-form' >
-
-       </div>
-       : ""
-}
-
 {
   activeDiv === "viewOrders" ?      
        <div className='order-form' >
@@ -274,19 +282,34 @@ data={{
 {  activeDiv ==='newOrder' ? 
 <>
 <div className='order-header' >New Orders</div>
+<ToastContainer
+position="top-right"
+autoClose={5000}
+hideProgressBar={false}
+newestOnTop={false}
+closeOnClick
+rtl={false}
+pauseOnFocusLoss
+draggable
+pauseOnHover
+theme="light"
+/>
+{/* Same as */}
+<ToastContainer />
 <Button type="primary" className='orderbtn' onClick={showModal}>
         Take order
       </Button>
-      <Modal title="Basic Modal"  open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+      <Modal title="Order Form"  open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
       <Form
     {...formItemLayout}
+    ref={formRef}
     variant="filled"
     style={{
       maxWidth: 600,
     }}
     onFinish={onFinish}
     onFinishFailed={onFinishFailed}
-    autoComplete="off"
+    autoComplete="on"
   >
     <Form.Item
       label="Customer Name"
@@ -386,14 +409,14 @@ data={{
     <Form.Item
       label="Balance"
       name="balance"
-      // rules={[
-      //   {
-      //     required: true,
-      //     message: 'Please input!',
-      //   },
-      // ]}
+      rules={[
+        {
+          required: true,
+          message: 'Please input!',
+        },
+      ]}
     >
-      <InputNumber value={}   readOnly={true} />
+      <InputNumber/>
     </Form.Item>
     <Form.Item
       label="DatePicker"
@@ -420,7 +443,7 @@ data={{
       }}
     >
       <Button type="primary" htmlType="submit">
-        Submit
+        Confirm Order
       </Button>
     </Form.Item>
   </Form>
