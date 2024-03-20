@@ -2,6 +2,7 @@ import React, {useState,useRef} from 'react';
 import { Layout, Flex } from 'antd';
 import "./Layout.css"
 import { FiLogOut } from "react-icons/fi";
+import { collection,addDoc,db } from '../Firebase/Firebase';
 import {toast,ToastContainer} from "react-toastify"
 import 'react-toastify/dist/ReactToastify.css';
 const { Header, Footer, Sider, Content } = Layout;
@@ -153,8 +154,22 @@ const formItemLayout = {
 // const [advance,setAdvance] = useState(null)
 // setBalance(total - advance);
 
-const onFinish = (values) => {
+const onFinish = async (values) => {
   console.log('Success:', values);  
+  const docRef = await addDoc(collection(db, "new order"), {
+    customername: values.name,
+    phone:values.phone,
+    serviceType: values.type,
+    leye:values.leye,
+    reye:values.reye,
+    total:values.total,
+    advance:values.advance,
+    balance:values.balance,
+    date:values.DatePicker,
+    status:values.status
+  });
+  console.log("Document written with ID: ", docRef.id);
+  
   toast.success("Customer order placed", {
     position: "top-right",
     autoClose: 5000,

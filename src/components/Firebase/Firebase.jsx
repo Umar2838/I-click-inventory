@@ -1,6 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth ,signInWithEmailAndPassword,signOut} from "firebase/auth";
+import { getFirestore,collection, addDoc } from "firebase/firestore";
+
 const firebaseConfig = {
   apiKey: "AIzaSyAf3jVjNmvMriVymMlRjvaSWoRSW0Z2Vmw",
   authDomain: "react-todo-app-5c2a3.firebaseapp.com",
@@ -15,6 +17,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 
-export {app,auth,signInWithEmailAndPassword,signOut}
+
+export {app,auth,signInWithEmailAndPassword,signOut,collection,addDoc,db}
