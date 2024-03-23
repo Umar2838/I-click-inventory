@@ -1,8 +1,8 @@
-import React, {useState,useRef} from 'react';
+import React, {useState,useRef,useEffect} from 'react';
 import { Layout, Flex } from 'antd';
 import "./Layout.css"
 import { FiLogOut } from "react-icons/fi";
-import { collection,addDoc,db } from '../Firebase/Firebase';
+import { collection,addDoc,db,serverTimestamp,getDocs,query, where,Timestamp } from '../Firebase/Firebase';
 import {toast,ToastContainer} from "react-toastify"
 import 'react-toastify/dist/ReactToastify.css';
 const { Header, Footer, Sider, Content } = Layout;
@@ -15,12 +15,11 @@ import { IoStatsChartSharp } from "react-icons/io5";
 import { GoPeople } from "react-icons/go";
 import { IoMdAddCircle } from "react-icons/io";
 import { FaEye } from "react-icons/fa";
-import {Chart as ChartJS} from "chart.js/auto"
 import {Bar} from "react-chartjs-2"
+import { Chart as ChartJS } from "chart.js/auto";
 import { DataGrid } from '@mui/x-data-grid';
 import { Button, Modal } from 'antd';
 import {
-  DatePicker,
   Form,
   Input,
   InputNumber,
@@ -69,49 +68,104 @@ const layoutStyle = {
 
 const Layoutstyle = () => {
   const navigate = useNavigate()
+  const [totalPrice,setTotalPrice] = useState(null)
+  const [currentPrice,setcurrentPrice] = useState(null)
   const [activeDiv, setActiveDiv] = useState('stats');
   const formRef = useRef();
   const handleDivClick = (divName) => {
     setActiveDiv(divName);
   };
+  
+  
+  // view delivered order table
+  const [rows,setRows] = useState(false)
+  useEffect(() => {
+    const fetchOrders = async () => {
+      const q = query(collection(db, "new order"), where("status", "==", "delivered"));
 
-  // view order table
+      const querySnapshot = await getDocs(q);
+      const orders = [];
+      querySnapshot.forEach((doc) => {
+        const order = doc.data();
+        orders.push({
+          id: doc.id,
+          date: order.timestamp.toDate().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          }),
+          Name: order.customername,
+          phone: order.phone,
+          frame: order.serviceType,
+          left: order.leye,
+          right: order.reye,
+          payment: order.total,
+          status:order.status
+        });
+      });
+      setRows(orders);
+    };
+
+    fetchOrders();
+  }, []); // Empty dependency array ensures the effect runs only once after the initial render
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
     { field: 'date', headerName: 'Date/Time', width: 130 },
     { field: 'Name', headerName: 'Customer Name', width: 130 },
     { field: 'phone', headerName: 'Phone.No', width: 130 },
-
     { field: 'frame', headerName: 'Frame', width: 130 },
-    {
-      field: 'left',
-      headerName: 'Left Eye',
-      width: 90,
-    },
-    {
-      field: 'right',
-      headerName: 'Right Eye',
-      width: 90,
-    },
-    {
-      field: 'payment',
-      headerName: 'Payment',
-      width: 90,
-    },
-    
+    { field: 'left', headerName: 'Left Eye', width: 90 },
+    { field: 'right', headerName: 'Right Eye', width: 90 },
+    { field: 'payment', headerName: 'Payment', width: 90 },
+    { field: 'status', headerName: 'Status', width: 90 },
+
   ];
   
-  const rows = [
-    { id: 1, date: '01-Dec-24',Name: 'Jon', phone:1234567890, frame:'sunglass',  left: 35,right:10 ,payment:10000},
-    { id: 2, date: '01-Dec-24',Name: 'Cersei',phone:1234567890,frame:'sunglass', left: 42,right:10,payment:10000 },
-    { id: 3, date: '01-Dec-24',Name: 'Jaime',phone:1234567890,frame:'sunglass', left: 45,right:10,payment:10000 },
-    { id: 4, date: '01-Dec-24',Name: 'Arya',phone:1234567890,frame:'sunglass', left: 16,right:10,payment:10000 },
-    { id: 5, date: '01-Dec-24',Name: 'Daenerys',phone:1234567890,frame:'sunglass', left: 13 ,right:10,payment:10000 },
-    { id: 6, date: '01-Dec-24',Name: 'umar',phone:1234567890,frame:'sunglass', left: 15,right:10,payment:10000 },
-    { id: 7, date: '01-Dec-24',Name: 'Ferrara',phone:1234567890,frame:'sunglass', left: 44,right:1 ,payment:10000},
-    { id: 8, date: '01-Dec-24',Name: 'Rossini',phone:1234567890,frame:'sunglass', left: 36,right:10,payment:10000 },
-    { id: 9, date: '01-Dec-24',Name: 'Harvey',phone:1234567890,frame:'sunglass', left: 65,right:10,payment:10000 },
+  
+  // view pending order table
+  const [pendingrows,setPendingRows] = useState(false)
+  useEffect(() => {
+    const fetchOrders = async () => {
+      const q = query(collection(db, "new order"), where("status", "==", "pending"));
+
+      const querySnapshot = await getDocs(q);
+      const orders = [];
+      querySnapshot.forEach((doc) => {
+        const order = doc.data();
+        orders.push({
+          id: doc.id,
+          date: order.timestamp.toDate().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          }),
+          Name: order.customername,
+          phone: order.phone,
+          frame: order.serviceType,
+          left: order.leye,
+          right: order.reye,
+          payment: order.total,
+          status:order.status
+        });
+      });
+      setPendingRows(orders);
+    };
+
+    fetchOrders();
+  }, []); // Empty dependency array ensures the effect runs only once after the initial render
+
+  const pendingcolumns = [
+    { field: 'id', headerName: 'ID', width: 70 },
+    { field: 'date', headerName: 'Date/Time', width: 130 },
+    { field: 'Name', headerName: 'Customer Name', width: 130 },
+    { field: 'phone', headerName: 'Phone.No', width: 130 },
+    { field: 'frame', headerName: 'Frame', width: 130 },
+    { field: 'left', headerName: 'Left Eye', width: 90 },
+    { field: 'right', headerName: 'Right Eye', width: 90 },
+    { field: 'payment', headerName: 'Payment', width: 90 },
+    { field: 'status', headerName: 'Status', width: 90 },
+
   ];
 
   // new order modal
@@ -129,8 +183,6 @@ const Layoutstyle = () => {
   }
 
 // new order form 
-
-const { RangePicker } = DatePicker;
 const formItemLayout = {
   labelCol: {
     xs: {
@@ -149,14 +201,11 @@ const formItemLayout = {
     },
   },
 };
-// const [balance , setBalance] = useState(null)
-// const [total,setTotal] = useState(null)
-// const [advance,setAdvance] = useState(null)
-// setBalance(total - advance);
-
-const onFinish = async (values) => {
-  console.log('Success:', values);  
-  const docRef = await addDoc(collection(db, "new order"), {
+const onFinish = async(values) => {
+  const date = new Date();
+  console.log('Success:',values);
+  console.log(date)  
+  const docRef = await addDoc(collection(db, "new order"),{
     customername: values.name,
     phone:values.phone,
     serviceType: values.type,
@@ -165,11 +214,10 @@ const onFinish = async (values) => {
     total:values.total,
     advance:values.advance,
     balance:values.balance,
-    date:values.DatePicker,
+    timestamp: serverTimestamp(),
     status:values.status
   });
   console.log("Document written with ID: ", docRef.id);
-  
   toast.success("Customer order placed", {
     position: "top-right",
     autoClose: 5000,
@@ -179,13 +227,80 @@ const onFinish = async (values) => {
     draggable: true,
     progress: undefined,
     theme: "light",
-   
     });
-     
 };
 const onFinishFailed = (errorInfo) => {
   console.log('Failed:', errorInfo);
 };
+
+
+// Header data
+const fetchAllPrices = async () => {
+  const ordersRef = collection(db, 'new order'); 
+
+  try {
+    const querySnapshot = await getDocs(ordersRef);
+    const prices = [];
+
+    querySnapshot.forEach((doc) => {
+      const price = doc.data().total; // Assuming 'payment' is the field representing the price
+      prices.push(price + price);
+    });
+
+    return prices ;
+  } catch (error) {
+    console.error('Error fetching prices:', error);
+    return []; // Return an empty array or handle the error as needed
+  }
+};
+
+
+
+// Usage
+fetchAllPrices()
+  .then((prices) => {
+    setTotalPrice(prices[0])
+    console.log('All prices:', totalPrice);
+    
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+
+  const fetchTotalPriceForCurrentDay = async () => {
+    // Get the current date and time as a Firestore Timestamp
+    const currentTimestamp = Timestamp.now();
+    // console.log(currentTimestamp.oDate)
+    const ordersRef = collection(db, 'new order'); // Replace 'new order' with your actual collection name
+  
+    // Create a query to filter documents where the 'timestamp' field matches the current timestamp
+    const q = query(ordersRef, where('timestamp', '==', currentTimestamp.toDate()));
+  
+    try {
+      const querySnapshot = await getDocs(q);
+      let totalPrice = 0;
+  
+      querySnapshot.forEach((doc) => {
+        const price = doc.data().total;
+        totalPrice += price; // Accumulate the total price
+      });
+  
+      return totalPrice;
+    } catch (error) {
+      console.error('Error fetching prices for current day:', error);
+      return 0; // Return 0 or handle the error as needed
+    }
+  };
+  
+  // Usage
+  fetchTotalPriceForCurrentDay()
+    .then((totalPrice) => {
+      console.log('Total price for current day:', totalPrice);
+      // Do something with the total price
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
   return(
 
     <Flex gap="middle" wrap="wrap">
@@ -217,7 +332,7 @@ const onFinishFailed = (errorInfo) => {
         <Header style={headerStyle}>
             <div className='header-wrapper' >
                 <div className='header-box' ><GiReceiveMoney size={30} className='icon' color='#5D62B5'/>Total Sell
-                <span className='header-data' > Rs-/ 2000</span>
+                <span className='header-data' > Rs-/ {totalPrice}</span>
                 </div>
                 <div className='header-box' ><GiPayMoney size={30} className='icon' color='#5D62B5'/>Today Sell
                 <span className='header-data' > Rs-/ 1000</span>
@@ -309,7 +424,6 @@ draggable
 pauseOnHover
 theme="light"
 />
-{/* Same as */}
 <ToastContainer />
 <Button type="primary" className='orderbtn' onClick={showModal}>
         Take order
@@ -433,18 +547,6 @@ theme="light"
     >
       <InputNumber/>
     </Form.Item>
-    <Form.Item
-      label="DatePicker"
-      name="DatePicker"
-      rules={[
-        {
-          required: true,
-          message: 'Please input!',
-        },
-      ]}
-    >
-      <DatePicker />
-    </Form.Item>
     <Form.Item label="Status" name="status">
           <Radio.Group>
             <Radio value="delivered"> Delivered </Radio>
@@ -463,12 +565,31 @@ theme="light"
     </Form.Item>
   </Form>
       </Modal>
+      <div className='order-form' >
+<div style={{ height: 400, width: '100%' }}>
+      <DataGrid
+        rows={pendingrows}
+        columns={pendingcolumns}
+        initialState={{
+          pagination: {
+            paginationModel: { page: 0, pageSize: 5 },
+          },
+        }}
+        pageSizeOptions={[5, 10]}
+        checkboxSelection
+      />
+    </div>
+ 
+       </div>
 
 
 </>
 : "" 
 
 }
+
+
+
         </Content>
         <Footer style={footerStyle}>copyright© {new Date().getFullYear()} I-Click Optics POS software </Footer>
       </Layout>
