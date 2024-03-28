@@ -2,7 +2,7 @@ import React, {useState,useRef,useEffect} from 'react';
 import { Layout, Flex } from 'antd';
 import "./Layout.css"
 import { FiLogOut } from "react-icons/fi";
-import { collection,addDoc,db,serverTimestamp,getDocs,query, where,Timestamp } from '../Firebase/Firebase';
+import { collection,addDoc,db,serverTimestamp,getDocs,query, where,Timestamp ,updateDoc , doc} from '../Firebase/Firebase';
 import {toast,ToastContainer} from "react-toastify"
 import 'react-toastify/dist/ReactToastify.css';
 const { Header, Footer, Sider, Content } = Layout;
@@ -14,7 +14,7 @@ import { GiReceiveMoney } from "react-icons/gi";
 import { IoStatsChartSharp } from "react-icons/io5";
 import { GoPeople } from "react-icons/go";
 import { IoMdAddCircle } from "react-icons/io";
-import { FaEye } from "react-icons/fa";
+import { FaDatabase, FaEye } from "react-icons/fa";
 import {Bar} from "react-chartjs-2"
 import { Chart as ChartJS } from "chart.js/auto";
 import { DataGrid } from '@mui/x-data-grid';
@@ -124,37 +124,61 @@ const Layoutstyle = () => {
   
   
   // view pending order table
-  const [pendingrows,setPendingRows] = useState(false)
-  useEffect(() => {
-    const fetchOrders = async () => {
-      const q = query(collection(db, "new order"), where("status", "==", "pending"));
+  const [pendingrows, setPendingRows] = useState([]);
 
-      const querySnapshot = await getDocs(q);
-      const orders = [];
-      querySnapshot.forEach((doc) => {
-        const order = doc.data();
-        orders.push({
-          id: doc.id,
-          date: order.timestamp.toDate().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          }),
-          Name: order.customername,
-          phone: order.phone,
-          frame: order.serviceType,
-          left: order.leye,
-          right: order.reye,
-          payment: order.total,
-          status:order.status
-        });
+  const fetchOrders = async () => {
+    const q = query(collection(db, "new order"), where("status", "==", "pending"));
+
+    const querySnapshot = await getDocs(q);
+    const orders = [];
+    querySnapshot.forEach((doc) => {
+      const order = doc.data();
+      orders.push({
+        id: doc.id,
+        date: order.timestamp.toDate().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
+        Name: order.customername,
+        phone: order.phone,
+        frame: order.serviceType,
+        left: order.leye,
+        right: order.reye,
+        payment: order.total,
+        status: order.status
       });
-      setPendingRows(orders);
-    };
+    });
+    setPendingRows(orders);
+  };
 
+  useEffect(() => {
     fetchOrders();
-  }, []); // Empty dependency array ensures the effect runs only once after the initial render
+  
+    const handleStatusChange = async (params) => {
+      const { id, value } = params;
+      
+      // Update status in the database
+      const orderRef = doc(db, "new order", id);
+      await updateDoc(orderRef, {
+        status: "delivered"
+      });
+  
+      // Update status in the state
+      const updatedRows = pendingrows.map(row => {
+        if (row.id === id) {
+          return { ...row, status: "delivered" };
+        }
+        return row;
+      });
+  
+      setPendingRows(updatedRows);
+    };
+  
+  
+  }, []);
 
+  
   const pendingcolumns = [
     { field: 'id', headerName: 'ID', width: 70 },
     { field: 'date', headerName: 'Date/Time', width: 130 },
@@ -164,7 +188,7 @@ const Layoutstyle = () => {
     { field: 'left', headerName: 'Left Eye', width: 90 },
     { field: 'right', headerName: 'Right Eye', width: 90 },
     { field: 'payment', headerName: 'Payment', width: 90 },
-    { field: 'status', headerName: 'Status', width: 90 },
+    { field: 'status', headerName: 'Status', editable:true, width: 90 },
 
   ];
 
@@ -204,7 +228,6 @@ const formItemLayout = {
 const onFinish = async(values) => {
   const date = new Date();
   console.log('Success:',values);
-  console.log(date)  
   const docRef = await addDoc(collection(db, "new order"),{
     customername: values.name,
     phone:values.phone,
@@ -567,17 +590,18 @@ theme="light"
       </Modal>
       <div className='order-form' >
 <div style={{ height: 400, width: '100%' }}>
-      <DataGrid
-        rows={pendingrows}
-        columns={pendingcolumns}
-        initialState={{
-          pagination: {
-            paginationModel: { page: 0, pageSize: 5 },
-          },
-        }}
-        pageSizeOptions={[5, 10]}
-        checkboxSelection
-      />
+<DataGrid
+          rows={pendingrows}
+          columns={pendingcolumns}
+          onEditCellChange={(params) => handleStatusChange(params)}
+          initialState={{
+            pagination: {
+              paginationModel: { page: 0, pageSize: 5 },
+            },
+          }}
+          pageSizeOptions={[5, 10]}
+          checkboxSelection
+        />
     </div>
  
        </div>
