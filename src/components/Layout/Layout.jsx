@@ -70,7 +70,29 @@ const Layoutstyle = () => {
   const navigate = useNavigate()
   const [totalPrice,setTotalPrice] = useState(null)
   const [currentPrice,setcurrentPrice] = useState(null)
+  const [costPrice,setcostPrice] = useState(null)
+  const [ordernumber,setordernumber] = useState(null)
   const [activeDiv, setActiveDiv] = useState('stats');
+  const [showTotalPrice, setShowTotalPrice] = useState(false);
+  const [showCurrentPrice, setShowCurrentPrice] = useState(false);
+  const [showProfit, setShowProfit] = useState(false);
+  const [showorder, setShoworder] = useState(false);
+
+  const toggleTotalPrice = () => {
+    setShowTotalPrice(!showTotalPrice);
+  };
+
+  const toggleCurrentPrice = () => {
+    setShowCurrentPrice(!showCurrentPrice);
+  };
+
+  const toggleProfit = () => {
+    setShowProfit(!showProfit);
+  };
+  
+  const toggleorder = () => {
+    setShoworder(!showorder);
+  };
   const formRef = useRef();
   const handleDivClick = (divName) => {
     setActiveDiv(divName);
@@ -89,11 +111,7 @@ const Layoutstyle = () => {
         const order = doc.data();
         orders.push({
           id: doc.id,
-          date: order.timestamp.toDate().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          }),
+         date : order.orderDate,
           Name: order.customername,
           phone: order.phone,
           frame: order.serviceType,
@@ -135,11 +153,7 @@ const Layoutstyle = () => {
       const order = doc.data();
       orders.push({
         id: doc.id,
-        date: order.timestamp.toDate().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        }),
+        date:order.orderDate,
         Name: order.customername,
         phone: order.phone,
         frame: order.serviceType,
@@ -155,29 +169,27 @@ const Layoutstyle = () => {
   useEffect(() => {
     fetchOrders();
   
-    const handleStatusChange = async (params) => {
-      const { id, value } = params;
-      
-      // Update status in the database
-      const orderRef = doc(db, "new order", id);
-      await updateDoc(orderRef, {
-        status: "delivered"
-      });
-  
-      // Update status in the state
-      const updatedRows = pendingrows.map(row => {
-        if (row.id === id) {
-          return { ...row, status: "delivered" };
-        }
-        return row;
-      });
-  
-      setPendingRows(updatedRows);
-    };
-  
-  
   }, []);
 
+  const handleStatusChange = async (params) => {
+    const { id, value } = params;
+    {console.log(params.value)}
+    // Update status in the database
+    const orderRef = doc(db, "new order", id);
+    await updateDoc(orderRef, {
+      status: "delivered"
+    });
+
+    // Update status in the state
+    const updatedRows = pendingrows.map(row => {
+      if (row.id === id) {
+        return { ...row, status: "delivered" };
+      }
+      return row;
+    });
+
+    setPendingRows(updatedRows);
+  };
   
   const pendingcolumns = [
     { field: 'id', headerName: 'ID', width: 70 },
@@ -225,20 +237,21 @@ const formItemLayout = {
     },
   },
 };
-const onFinish = async(values) => {
-  const date = new Date();
-  console.log('Success:',values);
-  const docRef = await addDoc(collection(db, "new order"),{
+const onFinish = async (values) => {
+  const currentDate = new Date(); // Get the current date
+  console.log('Success:', values);
+  const docRef = await addDoc(collection(db, "new order"), {
     customername: values.name,
-    phone:values.phone,
+    phone: values.phone,
     serviceType: values.type,
-    leye:values.leye,
-    reye:values.reye,
-    total:values.total,
-    advance:values.advance,
-    balance:values.balance,
-    timestamp: serverTimestamp(),
-    status:values.status
+    leye: values.leye,
+    reye: values.reye,
+    total: values.total,
+    advance: values.advance,
+    balance: values.balance,
+    status: values.status,
+    orderDate: currentDate ,
+    cost: values.cost,
   });
   console.log("Document written with ID: ", docRef.id);
   toast.success("Customer order placed", {
@@ -250,80 +263,140 @@ const onFinish = async(values) => {
     draggable: true,
     progress: undefined,
     theme: "light",
-    });
+  });
 };
 const onFinishFailed = (errorInfo) => {
   console.log('Failed:', errorInfo);
 };
 
 
+
 // Header data
 const fetchAllPrices = async () => {
-  const ordersRef = collection(db, 'new order'); 
+  const ordersRef = collection(db, 'new order');
+  
+  // Create a query to filter documents where the status is 'delivered'
+  const q = query(ordersRef, where('status', '==', 'delivered'));
 
   try {
-    const querySnapshot = await getDocs(ordersRef);
+    const querySnapshot = await getDocs(q);
     const prices = [];
-
     querySnapshot.forEach((doc) => {
-      const price = doc.data().total; // Assuming 'payment' is the field representing the price
-      prices.push(price + price);
+      const price = doc.data().total;
+      prices.push(price);
     });
 
-    return prices ;
+    return prices;
   } catch (error) {
     console.error('Error fetching prices:', error);
-    return []; // Return an empty array or handle the error as needed
+    return [];
   }
 };
-
-
 
 // Usage
 fetchAllPrices()
   .then((prices) => {
-    setTotalPrice(prices[0])
-    console.log('All prices:', totalPrice);
-    
+    const totalPrice = prices.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    console.log('Total price:', totalPrice);
+    setTotalPrice(totalPrice);
   })
   .catch((error) => {
     console.error('Error:', error);
   });
 
-  const fetchTotalPriceForCurrentDay = async () => {
-    // Get the current date and time as a Firestore Timestamp
-    const currentTimestamp = Timestamp.now();
-    // console.log(currentTimestamp.oDate)
-    const ordersRef = collection(db, 'new order'); // Replace 'new order' with your actual collection name
+//  prices for current date
+const fetchTotalPriceForCurrentDay = async () => {
+  // Get the current date
+  const currentDate = new Date();
+  const startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+  const endOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
+
+  // Convert to Firestore Timestamp
+  const startOfDayTimestamp = Timestamp.fromDate(startOfDay);
+  const endOfDayTimestamp = Timestamp.fromDate(endOfDay);
+
+  const ordersRef = collection(db, 'new order'); // Replace 'new order' with your actual collection name
   
-    // Create a query to filter documents where the 'timestamp' field matches the current timestamp
-    const q = query(ordersRef, where('timestamp', '==', currentTimestamp.toDate()));
-  
-    try {
-      const querySnapshot = await getDocs(q);
-      let totalPrice = 0;
-  
-      querySnapshot.forEach((doc) => {
-        const price = doc.data().total;
-        totalPrice += price; // Accumulate the total price
-      });
-  
-      return totalPrice;
-    } catch (error) {
-      console.error('Error fetching prices for current day:', error);
-      return 0; // Return 0 or handle the error as needed
-    }
-  };
-  
-  // Usage
-  fetchTotalPriceForCurrentDay()
-    .then((totalPrice) => {
-      console.log('Total price for current day:', totalPrice);
-      // Do something with the total price
-    })
-    .catch((error) => {
-      console.error('Error:', error);
+  // Create a query to filter documents where the 'orderDate' field falls within the current day
+  const q = query(ordersRef, where('orderDate', '>=', startOfDayTimestamp), where('orderDate', '<', endOfDayTimestamp),where('status', '==', 'delivered'));
+
+  try {
+    const querySnapshot = await getDocs(q);
+    let CurrenttotalPrice = 0;
+
+    querySnapshot.forEach((doc) => {
+      const price = doc.data().total;
+      CurrenttotalPrice += price; // Accumulate the total price
     });
+
+    return CurrenttotalPrice;
+  } catch (error) {
+    console.error('Error fetching prices for current day:', error);
+    return 0; // Return 0 or handle the error as needed
+  }
+};
+
+fetchTotalPriceForCurrentDay()
+.then((CurrenttotalPrice) => {
+  console.log('Total price for current day:', CurrenttotalPrice);
+  setcurrentPrice(CurrenttotalPrice)
+})
+.catch((error) => {
+  console.error('Error:', error);
+});
+const fetchAllCosts = async () => {
+  const ordersRef = collection(db, 'new order');
+  const q = query(ordersRef, where('status', '==', 'delivered'));
+  
+  try {
+    const querySnapshot = await getDocs(q);
+    const costs = [];
+    querySnapshot.forEach((doc) => {
+      const cost = doc.data().cost; 
+      costs.push(cost);
+    });
+  
+    return costs;
+  } catch (error) {
+    console.error('Error fetching costs:', error);
+    return [];
+  }
+};
+
+fetchAllCosts()
+  .then((costs) => {
+    const totalCost = costs.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    console.log('Total cost:', totalCost);
+    setcostPrice(totalCost);
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+  
+// no of order
+const getTotalOrderCount = async () => {
+  const ordersRef = collection(db, 'new order');
+
+  try {
+    const querySnapshot = await getDocs(ordersRef);
+    return querySnapshot.size; // Return the number of documents in the collection
+  } catch (error) {
+    console.error('Error fetching order count:', error);
+    return 0; // Return 0 or handle the error as needed
+  }
+};
+
+// Usage
+getTotalOrderCount()
+  .then((orderCount) => {
+    console.log('Total number of orders:', orderCount);
+setordernumber(orderCount)
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+
+
   return(
 
     <Flex gap="middle" wrap="wrap">
@@ -354,18 +427,30 @@ fetchAllPrices()
       <Layout>
         <Header style={headerStyle}>
             <div className='header-wrapper' >
-                <div className='header-box' ><GiReceiveMoney size={30} className='icon' color='#5D62B5'/>Total Sell
-                <span className='header-data' > Rs-/ {totalPrice}</span>
-                </div>
-                <div className='header-box' ><GiPayMoney size={30} className='icon' color='#5D62B5'/>Today Sell
-                <span className='header-data' > Rs-/ 1000</span>
-                </div>
-                <div className='header-box' ><GiTakeMyMoney size={30} className='icon' color='#5D62B5'/>Profit
-                <span className='header-data' > Rs-/ 20000</span>
-                </div>
-                <div className='header-box' ><GoPeople size={30} className='icon' color='#5D62B5'/> Order
-                <span className='header-data' > 229</span>
-                </div>
+      {/* Total Sell */}
+      <div className='header-box' onClick={toggleTotalPrice}>
+        <GiReceiveMoney size={30} className='icon' color='#5D62B5' />
+        Total Sell
+        {showTotalPrice ? <span className='header-data'> Rs-/ {totalPrice}</span> : <span className='header-data'>✶✶✶✶ 👁</span> }
+      </div>
+      {/* Today Sell */}
+      <div className='header-box' onClick={toggleCurrentPrice}>
+        <GiPayMoney size={30} className='icon' color='#5D62B5' />
+        Today Sell
+        {showCurrentPrice ? <span className='header-data'> Rs-/ {currentPrice}</span>:<span className='header-data'>✶✶✶✶ 👁</span>}
+      </div>
+      {/* Profit */}
+      <div className='header-box' onClick={toggleProfit}>
+        <GiTakeMyMoney size={30} className='icon' color='#5D62B5' />
+        Profit
+        {showProfit ? <span className='header-data'> Rs-/ {totalPrice - costPrice}</span>:<span className='header-data'>✶✶✶✶ 👁</span>}
+      </div>
+      {/* Order */}
+      <div className='header-box' onClick={toggleorder} >
+        <GoPeople size={30} className='icon' color='#5D62B5' />
+        Order
+        {showorder ? <span className='header-data'> Rs-/ {ordernumber}</span>:<span className='header-data'>✶✶✶✶ 👁</span>}
+      </div>
             <button onClick={()=>{
               signOut(auth).then(() => {
                 navigate("/")
@@ -530,6 +615,18 @@ theme="light"
       ]}
     >
       <Input />
+    </Form.Item>
+    <Form.Item
+      label="Cost"
+      name="cost"
+      rules={[
+        {
+          required: true,
+          message: 'Please input!',
+        },
+      ]}
+    >
+      <InputNumber   />
     </Form.Item>
 
     <Form.Item
