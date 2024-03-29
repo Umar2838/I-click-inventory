@@ -19,6 +19,7 @@ import {Bar} from "react-chartjs-2"
 import { Chart as ChartJS } from "chart.js/auto";
 import { DataGrid } from '@mui/x-data-grid';
 import { Button, Modal } from 'antd';
+import HashLoader from "react-spinners/HashLoader"
 import {
   Form,
   Input,
@@ -77,6 +78,7 @@ const Layoutstyle = () => {
   const [showCurrentPrice, setShowCurrentPrice] = useState(false);
   const [showProfit, setShowProfit] = useState(false);
   const [showorder, setShoworder] = useState(false);
+  const [loader,setLoder] = useState(false)
 
   const toggleTotalPrice = () => {
     setShowTotalPrice(!showTotalPrice);
@@ -109,9 +111,12 @@ const Layoutstyle = () => {
       const orders = [];
       querySnapshot.forEach((doc) => {
         const order = doc.data();
+        const displayorderDate = order.orderDate.toDate(); // Convert Firestore timestamp to JavaScript Date object
+          const formattedDate = displayorderDate.toLocaleString()
         orders.push({
           id: doc.id,
          date : order.orderDate,
+         displayDate : formattedDate,
           Name: order.customername,
           phone: order.phone,
           frame: order.serviceType,
@@ -129,7 +134,7 @@ const Layoutstyle = () => {
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'date', headerName: 'Date/Time', width: 130 },
+    { field: 'displayDate', headerName: 'Date/Time', width: 130 },
     { field: 'Name', headerName: 'Customer Name', width: 130 },
     { field: 'phone', headerName: 'Phone.No', width: 130 },
     { field: 'frame', headerName: 'Frame', width: 130 },
@@ -142,66 +147,85 @@ const Layoutstyle = () => {
   
   
   // view pending order table
-  const [pendingrows, setPendingRows] = useState([]);
+  const [pendingRows, setPendingRows] = useState([]);
 
   const fetchOrders = async () => {
     const q = query(collection(db, "new order"), where("status", "==", "pending"));
-
-    const querySnapshot = await getDocs(q);
-    const orders = [];
-    querySnapshot.forEach((doc) => {
-      const order = doc.data();
-      orders.push({
-        id: doc.id,
-        date:order.orderDate,
-        Name: order.customername,
-        phone: order.phone,
-        frame: order.serviceType,
-        left: order.leye,
-        right: order.reye,
-        payment: order.total,
-        status: order.status
+    
+    try {
+      const querySnapshot = await getDocs(q);
+      const orders = [];
+      querySnapshot.forEach((doc) => {
+        const order = doc.data();
+        const displayorderDate = order.orderDate.toDate(); // Convert Firestore timestamp to JavaScript Date object
+          const formattedDate = displayorderDate.toLocaleString()
+        orders.push({
+          id: doc.id,
+          date: order.orderDate,
+          displayDate:formattedDate,
+          Name: order.customername,
+          phone: order.phone,
+          frame: order.serviceType,
+          left: order.leye,
+          right: order.reye,
+          payment: order.total,
+          status: order.status
+        });
       });
-    });
-    setPendingRows(orders);
+      setPendingRows(orders);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
   };
 
   useEffect(() => {
     fetchOrders();
-  
   }, []);
 
-  const handleStatusChange = async (params) => {
-    const { id, value } = params;
-    {console.log(params.value)}
-    // Update status in the database
-    const orderRef = doc(db, "new order", id);
-    await updateDoc(orderRef, {
-      status: "delivered"
-    });
-
-    // Update status in the state
-    const updatedRows = pendingrows.map(row => {
-      if (row.id === id) {
-        return { ...row, status: "delivered" };
-      }
-      return row;
-    });
-
-    setPendingRows(updatedRows);
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const orderRef = doc(db, 'new order', id);
+      await updateDoc(orderRef, {
+        status: newStatus
+      });
+      
+      // Update the state after successful Firestore update
+      setPendingRows(prevRows => {
+        const updatedRows = prevRows.map(row => {
+          if (row.id === id) {
+            return { ...row, status: newStatus };
+          }
+          return row;
+        });
+        return updatedRows;
+      });
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
   };
-  
-  const pendingcolumns = [
+
+  const pendingColumns = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'date', headerName: 'Date/Time', width: 130 },
+    { field: 'displayDate', headerName: 'Date/Time', width: 130 },
     { field: 'Name', headerName: 'Customer Name', width: 130 },
     { field: 'phone', headerName: 'Phone.No', width: 130 },
     { field: 'frame', headerName: 'Frame', width: 130 },
     { field: 'left', headerName: 'Left Eye', width: 90 },
     { field: 'right', headerName: 'Right Eye', width: 90 },
     { field: 'payment', headerName: 'Payment', width: 90 },
-    { field: 'status', headerName: 'Status', editable:true, width: 90 },
-
+    { field: 'status', headerName: 'Status', editable: true, width: 90, 
+      cellClassName: (params) => (params.value === 'delivered' ? 'status-delivered' : 'status-pending'),
+      valueFormatter: (params) => params.value.charAt(0).toUpperCase() + params.value.slice(1),
+      renderEditCell: (params) => (
+        <select
+          value={params.value}
+          onChange={(e) => handleStatusChange(params.row.id, e.target.value)}
+        >
+          <option value="pending">Pending</option>
+          <option value="delivered">Delivered</option>
+        </select>
+      )
+    },
   ];
 
   // new order modal
@@ -238,6 +262,7 @@ const formItemLayout = {
   },
 };
 const onFinish = async (values) => {
+  setLoder(true)
   const currentDate = new Date(); // Get the current date
   console.log('Success:', values);
   const docRef = await addDoc(collection(db, "new order"), {
@@ -254,6 +279,7 @@ const onFinish = async (values) => {
     cost: values.cost,
   });
   console.log("Document written with ID: ", docRef.id);
+  setLoder(false)
   toast.success("Customer order placed", {
     position: "top-right",
     autoClose: 5000,
@@ -264,6 +290,7 @@ const onFinish = async (values) => {
     progress: undefined,
     theme: "light",
   });
+  window.location.reload();
 };
 const onFinishFailed = (errorInfo) => {
   console.log('Failed:', errorInfo);
@@ -449,7 +476,7 @@ setordernumber(orderCount)
       <div className='header-box' onClick={toggleorder} >
         <GoPeople size={30} className='icon' color='#5D62B5' />
         Order
-        {showorder ? <span className='header-data'> Rs-/ {ordernumber}</span>:<span className='header-data'>✶✶✶✶ 👁</span>}
+        {showorder ? <span className='header-data'> {ordernumber}</span>:<span className='header-data'>✶✶✶✶ 👁</span>}
       </div>
             <button onClick={()=>{
               signOut(auth).then(() => {
@@ -533,7 +560,7 @@ pauseOnHover
 theme="light"
 />
 <ToastContainer />
-<Button type="primary" className='orderbtn' onClick={showModal}>
+<Button type="primary" className='orderbtn'  onClick={showModal}>
         Take order
       </Button>
       <Modal title="Order Form"  open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
@@ -669,8 +696,8 @@ theme="light"
     </Form.Item>
     <Form.Item label="Status" name="status">
           <Radio.Group>
-            <Radio value="delivered"> Delivered </Radio>
-            <Radio value="pending"> Pending </Radio>
+            <Radio value="delivered"> delivered </Radio>
+            <Radio value="pending"> pending </Radio>
           </Radio.Group>
         </Form.Item>
     <Form.Item
@@ -680,7 +707,7 @@ theme="light"
       }}
     >
       <Button type="primary" htmlType="submit">
-        Confirm Order
+      {loader ? <HashLoader color='#fff' size={20} />  : "Confirm Order" }
       </Button>
     </Form.Item>
   </Form>
@@ -688,9 +715,8 @@ theme="light"
       <div className='order-form' >
 <div style={{ height: 400, width: '100%' }}>
 <DataGrid
-          rows={pendingrows}
-          columns={pendingcolumns}
-          onEditCellChange={(params) => handleStatusChange(params)}
+          rows={pendingRows}
+          columns={pendingColumns}
           initialState={{
             pagination: {
               paginationModel: { page: 0, pageSize: 5 },
