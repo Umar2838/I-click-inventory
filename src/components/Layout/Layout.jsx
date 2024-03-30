@@ -79,6 +79,7 @@ const Layoutstyle = () => {
   const [showProfit, setShowProfit] = useState(false);
   const [showorder, setShoworder] = useState(false);
   const [loader,setLoder] = useState(false)
+  const [invoiceData,setInvoiceData] = useState(null)
 
   const toggleTotalPrice = () => {
     setShowTotalPrice(!showTotalPrice);
@@ -261,10 +262,40 @@ const formItemLayout = {
     },
   },
 };
+
 const onFinish = async (values) => {
   setLoder(true)
   const currentDate = new Date(); // Get the current date
   console.log('Success:', values);
+  setInvoiceData({
+    ...invoiceData,
+    name: values.name,
+    phone: values.phone,
+    serviceType: values.type,
+    leye: values.leye,
+    reye: values.reye,
+    total: values.total,
+    advance: values.advance,
+    balance: values.balance,
+    status: values.status,
+    orderDate: currentDate,
+    cost: values.cost,
+  });
+
+  localStorage.setItem('invoiceData', JSON.stringify({
+    ...invoiceData,
+    name: values.name,
+    phone: values.phone,
+    serviceType: values.type,
+    leye: values.leye,
+    reye: values.reye,
+    total: values.total,
+    advance: values.advance,
+    balance: values.balance,
+    status: values.status,
+    orderDate: currentDate,
+    cost: values.cost,
+  }));
   const docRef = await addDoc(collection(db, "new order"), {
     customername: values.name,
     phone: values.phone,
@@ -290,7 +321,9 @@ const onFinish = async (values) => {
     progress: undefined,
     theme: "light",
   });
+  setIsModalOpen(true)
   window.location.reload();
+
 };
 const onFinishFailed = (errorInfo) => {
   console.log('Failed:', errorInfo);
@@ -427,7 +460,6 @@ setordernumber(orderCount)
   return(
 
     <Flex gap="middle" wrap="wrap">
-      
     <Layout style={layoutStyle}>
     <Sider width="12%" style={siderStyle}>
       <div className='slider' >
