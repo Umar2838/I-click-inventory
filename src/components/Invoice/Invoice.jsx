@@ -1,4 +1,5 @@
-import React from "react";
+import React ,{useState} from "react";
+import { useFormContext } from '../Context/Context.jsx'; 
 import {
   MDBCard,
   MDBCardBody,
@@ -12,14 +13,17 @@ import {
   MDBTableHead,
   MDBTableBody,
 } from "mdb-react-ui-kit";
-import 'mdb-react-ui-kit/dist/css/mdb.min.css';
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./invoice.css"
-
- var data = localStorage.getItem("invoiceData")
-{console.log(data)}
-export default function App() {
+import MailIcon from '@mui/icons-material/Mail';
+export default function Invoice() {
+  const { formData } = useFormContext();
+  const date = new Date().toLocaleDateString()
+  
   return (
+    
+  
+
     <MDBContainer className="py-5" >
       <MDBCard className="p-4 card">
         <MDBCardBody >
@@ -57,15 +61,26 @@ export default function App() {
           
           <MDBRow>
             <MDBCol xl="8">
-              <MDBTypography listUnStyled>
-                <li className="text-muted">
-                  To: <span style={{ color: "#5d9fc5" }}>John Lorem</span>
+              <MDBTypography style={{fontSize:"18px"}} listUnStyled>
+              
+                  <li className="text-muted">
+                  <span style={{ fontWeight:"900",fontSize:"24px" ,color: "#5d9fc5" }}>I-Click Optics</span>
                 </li>
-                <li className="text-muted">Street, City</li>
-                <li className="text-muted">State, Country</li>
+                <li className="text-muted">Shop # G-93, Harmain Tower,</li>
+                <li className="text-muted">Johar Moar,Karachi</li>
                 <li className="text-muted">
-                  <MDBIcon fas icon="phone-alt" /> 123-456-789
+                  <MDBIcon fas icon="phone-alt" /> 0334-2838283
+                
                 </li>
+                <li className="text-muted">
+                  <MDBIcon fas icon="phone-alt" /> 0301-2938283 
+                
+                </li>
+                <li className="text-muted">
+                  <MailIcon/> aqeel03342838283@gmail.com 
+                
+                </li>
+
               </MDBTypography>
             </MDBCol>
             <MDBCol xl="4">
@@ -73,18 +88,17 @@ export default function App() {
               <MDBTypography listUnStyled>
                 <li className="text-muted">
                   <MDBIcon fas icon="circle" style={{ color: "#84B0CA" }} />
-                  <span className="fw-bold ms-1">ID:</span>#123-456
+                  <span className="fw-bold ms-1">Customer Name:</span>Umar Aqeel
                 </li>
                 <li className="text-muted">
                   <MDBIcon fas icon="circle" style={{ color: "#84B0CA" }} />
-                  <span className="fw-bold ms-1">Creation Date: </span>Jun
-                  23,2021
+                  <span className="fw-bold ms-1">Date:</span> {date}
                 </li>
                 <li className="text-muted">
                   <MDBIcon fas icon="circle" style={{ color: "#84B0CA" }} />
                   <span className="fw-bold ms-1">Status:</span>
                   <span className="badge bg-warning text-black fw-bold ms-1">
-                    Unpaid
+                    {formData.status && "delivered" ? "Paid" : "Unpaid" }
                   </span>
                 </li>
               </MDBTypography>
@@ -98,71 +112,47 @@ export default function App() {
               >
                 <tr>
                   <th scope="col">#</th>
-                  <th scope="col">Description</th>
-                  <th scope="col">Qty</th>
-                  <th scope="col">Unit Price</th>
-                  <th scope="col">Amount</th>
+                  <th scope="col">Service</th>
+                  <th scope="col">Left Eye</th>
+                  <th scope="col">Right Eye</th>
+               
+
                 </tr>
               </MDBTableHead>
               <MDBTableBody>
                 <tr>
-                  <th scope="row">1</th>
-                  <td>Pro Package</td>
-                  <td>4</td>
-                  <td>$200</td>
-                  <td>$800</td>
+                  <th scope="row">•</th>
+                  <td>Sunglass</td>
+                  <td>-4.00</td>
+                  <td>-4.00</td>
+
                 </tr>
-                <tr>
-                  <th scope="row">2</th>
-                  <td>Web hosting</td>
-                  <td>1</td>
-                  <td>$10</td>
-                  <td>$10</td>
-                </tr>
-                <tr>
-                  <th scope="row">3</th>
-                  <td>Consulting</td>
-                  <td>1 year</td>
-                  <td>$300</td>
-                  <td>$300</td>
-                </tr>
+              
               </MDBTableBody>
             </MDBTable>
           </MDBRow>
           <MDBRow>
-            <MDBCol xl="8">
-              <p className="ms-3">
-                Add additional notes and payment information
-              </p>
-            </MDBCol>
             <MDBCol xl="3">
               <MDBTypography listUnStyled>
                 <li className="text-muted ms-3">
-                  <span className="text-black me-4">SubTotal</span>$1110
+                  <span className="text-black me-4">SubTotal</span>Rs -/ 1110
                 </li>
                 <li className="text-muted ms-3 mt-2">
-                  <span className="text-black me-4">Tax(15%)</span>$111
+                  <span className="text-black me-4">Advance</span>Rs -/ 111
+                </li>
+                <li className="text-muted ms-3 mt-2">
+                  <span className="text-black me-4">Balance</span>Rs -/ 111
                 </li>
               </MDBTypography>
-              <p className="text-black float-start">
-                <span className="text-black me-3"> Total Amount</span>
-                <span style={{ fontSize: "25px" }}>$1221</span>
-              </p>
+            
             </MDBCol>
           </MDBRow>
           <hr />
           <MDBRow>
-            <MDBCol xl="10">
+            <MDBCol  xl="10">
               <p>Thank you for your purchase</p>
             </MDBCol>
-            <MDBCol xl="2">
-              <MDBBtn
-                className="text-capitalize"
-                style={{ backgroundColor: "#60bdf3" }}
-              >
-                Pay Now
-              </MDBBtn>
-            </MDBCol>
+        
           </MDBRow>
         </MDBCardBody>
       </MDBCard>

@@ -1,11 +1,11 @@
 import React, {useState,useRef,useEffect} from 'react';
 import { Layout, Flex } from 'antd';
-import "./Layout.css"
 import { FiLogOut } from "react-icons/fi";
 import { collection,addDoc,db,serverTimestamp,getDocs,query, where,Timestamp ,updateDoc , doc} from '../Firebase/Firebase';
 import {toast,ToastContainer} from "react-toastify"
 import 'react-toastify/dist/ReactToastify.css';
 const { Header, Footer, Sider, Content } = Layout;
+import "./Layout.css"
 import {useNavigate} from "react-router-dom"
 import {auth, signOut } from '../Firebase/Firebase';
 import { GiPayMoney } from "react-icons/gi";
@@ -20,6 +20,7 @@ import { Chart as ChartJS } from "chart.js/auto";
 import { DataGrid } from '@mui/x-data-grid';
 import { Button, Modal } from 'antd';
 import HashLoader from "react-spinners/HashLoader"
+import { useFormContext } from '../Context/Context'; 
 import {
   Form,
   Input,
@@ -79,8 +80,7 @@ const Layoutstyle = () => {
   const [showProfit, setShowProfit] = useState(false);
   const [showorder, setShoworder] = useState(false);
   const [loader,setLoder] = useState(false)
-  const [invoiceData,setInvoiceData] = useState(null)
-
+  const { updateFormData } = useFormContext();
   const toggleTotalPrice = () => {
     setShowTotalPrice(!showTotalPrice);
   };
@@ -267,35 +267,7 @@ const onFinish = async (values) => {
   setLoder(true)
   const currentDate = new Date(); // Get the current date
   console.log('Success:', values);
-  setInvoiceData({
-    ...invoiceData,
-    name: values.name,
-    phone: values.phone,
-    serviceType: values.type,
-    leye: values.leye,
-    reye: values.reye,
-    total: values.total,
-    advance: values.advance,
-    balance: values.balance,
-    status: values.status,
-    orderDate: currentDate,
-    cost: values.cost,
-  });
-
-  localStorage.setItem('invoiceData', JSON.stringify({
-    ...invoiceData,
-    name: values.name,
-    phone: values.phone,
-    serviceType: values.type,
-    leye: values.leye,
-    reye: values.reye,
-    total: values.total,
-    advance: values.advance,
-    balance: values.balance,
-    status: values.status,
-    orderDate: currentDate,
-    cost: values.cost,
-  }));
+  updateFormData(values,currentDate);
   const docRef = await addDoc(collection(db, "new order"), {
     customername: values.name,
     phone: values.phone,
@@ -322,7 +294,8 @@ const onFinish = async (values) => {
     theme: "light",
   });
   setIsModalOpen(true)
-  window.location.reload();
+  navigate("/invoice")
+  // window.location.reload();
 
 };
 const onFinishFailed = (errorInfo) => {

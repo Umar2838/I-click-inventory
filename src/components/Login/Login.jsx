@@ -61,11 +61,11 @@ theme="light"
 />
       <div className='wrapper' >
         <div className='brand-div' >
-          <h1>I-Click Inventory</h1>
+          <h1 className='h1'>I-Click Inventory</h1>
           <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eaque dicta libero molestiae consequatur amet nesciunt nemo saepe cupiditate facere rerum et nostrum, velit dolore vel placeat eum qui quo deserunt? Officiis possimus debitis iure ducimus facilis esse, placeat illo vel qui magni, eum, amet molestiae illum aliquam fugit impedit rem? Nobis aperiam nihil quaerat illum modi labore iste ab suscipit qui unde quo necessitatibus non vero laudantium eius, tempore quidem sint reiciendis commodi ipsa nulla eum natus earum ex. Ad quis deserunt amet temporibus repudiandae adipisci rem harum dignissimos, cupiditate ut. Sit ullam assumenda tenetur odio totam? Praesentium, error. Velit!</p>
         </div>
         <div className='form-div' >
-          <h2>Login</h2>
+          <h2 className='h2' >Login</h2>
           <Form
             name="basic"
             labelCol={{
