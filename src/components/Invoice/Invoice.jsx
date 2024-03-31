@@ -14,12 +14,38 @@ import {
   MDBTableBody,
 } from "mdb-react-ui-kit";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import PhoneIcon from '@mui/icons-material/Phone';
+import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
 import "./invoice.css"
 import MailIcon from '@mui/icons-material/Mail';
+import DownloadIcon from '@mui/icons-material/Download';
 export default function Invoice() {
   const { formData } = useFormContext();
   const date = new Date().toLocaleDateString()
   
+  const handlePrint = () => {
+    window.print();
+  };
+  const handleExportPDF = () => {
+    // Create a new Blob object containing the HTML content of the page
+    const content = document.documentElement.outerHTML;
+    const blob = new Blob([content], { type: 'text/html' });
+
+    // Create a URL for the Blob object
+    const url = URL.createObjectURL(blob);
+
+    // Create a link element and trigger a click event to initiate download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'invoice.html'; // Set the filename for the downloaded file
+    document.body.appendChild(a);
+    a.click();
+
+    // Clean up by revoking the URL
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
   return (
     
   
@@ -37,21 +63,21 @@ export default function Invoice() {
                   color="light"
                   ripple="dark"
                   className="text-capitalize border-0"
+                  onClick={handlePrint}
+
+
                 >
-                  <MDBIcon fas icon="print" color="primary" className="me-1" />
+<LocalPrintshopIcon />
                   Print
                 </MDBBtn>
                 <MDBBtn
                   color="light"
                   ripple="dark"
                   className="text-capitalize border-0 ms-2"
+                  onClick={handleExportPDF}
+
                 >
-                  <MDBIcon
-                    far
-                    icon="file-pdf"
-                    color="danger"
-                    className="me-1"
-                  />
+                  <DownloadIcon/>
                   Export
                 </MDBBtn>
                 <hr />
@@ -69,11 +95,11 @@ export default function Invoice() {
                 <li className="text-muted">Shop # G-93, Harmain Tower,</li>
                 <li className="text-muted">Johar Moar,Karachi</li>
                 <li className="text-muted">
-                  <MDBIcon fas icon="phone-alt" /> 0334-2838283
+                 <PhoneIcon/> 0334-2838283
                 
                 </li>
                 <li className="text-muted">
-                  <MDBIcon fas icon="phone-alt" /> 0301-2938283 
+                  <PhoneIcon/> 0301-2938283 
                 
                 </li>
                 <li className="text-muted">
@@ -88,7 +114,7 @@ export default function Invoice() {
               <MDBTypography listUnStyled>
                 <li className="text-muted">
                   <MDBIcon fas icon="circle" style={{ color: "#84B0CA" }} />
-                  <span className="fw-bold ms-1">Customer Name:</span>Umar Aqeel
+                  <span className="fw-bold ms-1">Customer Name:</span> Umar Aqeel
                 </li>
                 <li className="text-muted">
                   <MDBIcon fas icon="circle" style={{ color: "#84B0CA" }} />
@@ -98,7 +124,7 @@ export default function Invoice() {
                   <MDBIcon fas icon="circle" style={{ color: "#84B0CA" }} />
                   <span className="fw-bold ms-1">Status:</span>
                   <span className="badge bg-warning text-black fw-bold ms-1">
-                    {formData.status && "delivered" ? "Paid" : "Unpaid" }
+                    {formData.status === "delivered" ? "Paid" : "Unpaid" }
                   </span>
                 </li>
               </MDBTypography>
@@ -113,8 +139,8 @@ export default function Invoice() {
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col">Service</th>
-                  <th scope="col">Left Eye</th>
-                  <th scope="col">Right Eye</th>
+                  <th scope="col">Left eye</th>
+                  <th scope="col">Right eye</th>
                
 
                 </tr>
@@ -122,9 +148,9 @@ export default function Invoice() {
               <MDBTableBody>
                 <tr>
                   <th scope="row">•</th>
-                  <td>Sunglass</td>
-                  <td>-4.00</td>
-                  <td>-4.00</td>
+                  <td>{formData.type}</td>
+                  <td>{formData.leye}</td>
+                  <td>{formData.reye}</td>
 
                 </tr>
               
@@ -135,22 +161,22 @@ export default function Invoice() {
             <MDBCol xl="3">
               <MDBTypography listUnStyled>
                 <li className="text-muted ms-3">
-                  <span className="text-black me-4">SubTotal</span>Rs -/ 1110
+                  <span className="text-black me-4">SubTotal</span>Rs - / {formData.total}
                 </li>
                 <li className="text-muted ms-3 mt-2">
-                  <span className="text-black me-4">Advance</span>Rs -/ 111
+                  <span className="text-black me-4">Advance</span>Rs - / {formData.advance}
                 </li>
                 <li className="text-muted ms-3 mt-2">
-                  <span className="text-black me-4">Balance</span>Rs -/ 111
+                  <span className="text-black me-4">Balance</span>Rs - / {formData.balance}
                 </li>
               </MDBTypography>
             
             </MDBCol>
           </MDBRow>
           <hr />
-          <MDBRow>
-            <MDBCol  xl="10">
-              <p>Thank you for your purchase</p>
+          <MDBRow  >
+            <MDBCol  >
+              <p style={{textAlign:"center"}}>Your satisfaction is our priority at I-Click Optics.</p>
             </MDBCol>
         
           </MDBRow>
