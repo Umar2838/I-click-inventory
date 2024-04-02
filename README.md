@@ -1,8 +1,14 @@
 # React + Vite
+<div align='center'>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<img src=https://ibb.co/jyHnHC1 alt="logo" width=100 height=100 />
 
-Currently, two official plugins are available:
+<h1>React,useContext,Chart.js,Firebase,React-Tostify</h1>
+<p>This is a complete inventory and billing management software which can help shop owner to analyze his total sells , current sells , orders , profit margin also views his new and old order and analyze his order and sell history graph and make a billing invoice of order after confirm order</p>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+<h4> <span> · </span> <a href="https://github.com/Umar2838/I-click-inventory/blob/master/README.md"> Documentation </a> <span> · </span> <a href="https://github.com/Umar2838/I-click-inventory/issues"> Report Bug </a> <span> · </span> <a href="https://github.com/Umar2838/I-click-inventory/issues"> Request Feature </a> </h4>
+
+
+</div>
+
+## :star2: About the Project
