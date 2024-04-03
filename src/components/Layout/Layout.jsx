@@ -81,33 +81,32 @@ const Layoutstyle = () => {
   const [showorder, setShoworder] = useState(false);
   const [loader,setLoder] = useState(false)
   const { updateFormData } = useFormContext();
+ 
+//  <--------------------------------Hide/Show functions-----------------------------------> 
   const toggleTotalPrice = () => {
     setShowTotalPrice(!showTotalPrice);
   };
-
   const toggleCurrentPrice = () => {
     setShowCurrentPrice(!showCurrentPrice);
   };
-
   const toggleProfit = () => {
     setShowProfit(!showProfit);
   };
-  
   const toggleorder = () => {
     setShoworder(!showorder);
   };
+
+  // <----------------------------handle Tabs-------------------------------------------------->
   const formRef = useRef();
   const handleDivClick = (divName) => {
     setActiveDiv(divName);
   };
   
-  
-  // view delivered order table
+  // <-----------------------------delivered order Tab------------------------------------------>
   const [rows,setRows] = useState(false)
   useEffect(() => {
     const fetchOrders = async () => {
       const q = query(collection(db, "new order"), where("status", "==", "delivered"));
-
       const querySnapshot = await getDocs(q);
       const orders = [];
       querySnapshot.forEach((doc) => {
@@ -146,13 +145,11 @@ const Layoutstyle = () => {
 
   ];
   
+ // <-------------------------------------------------Pending order Tab---------------------------------->
   
-  // view pending order table
   const [pendingRows, setPendingRows] = useState([]);
-
   const fetchOrders = async () => {
     const q = query(collection(db, "new order"), where("status", "==", "pending"));
-    
     try {
       const querySnapshot = await getDocs(q);
       const orders = [];
@@ -178,20 +175,18 @@ const Layoutstyle = () => {
       console.error('Error fetching orders:', error);
     }
   };
-
   useEffect(() => {
     fetchOrders();
   }, []);
 
+  // <-----------------------------handing pending to delivered function------------------------------------->
   const handleStatusChange = async (id, newStatus) => {
     try {
       const orderRef = doc(db, 'new order', id);
       await updateDoc(orderRef, {
         status: newStatus
       });
-      
-      // Update the state after successful Firestore update
-      setPendingRows(prevRows => {
+        setPendingRows(prevRows => {
         const updatedRows = prevRows.map(row => {
           if (row.id === id) {
             return { ...row, status: newStatus };
@@ -204,7 +199,6 @@ const Layoutstyle = () => {
       console.error('Error updating status:', error);
     }
   };
-
   const pendingColumns = [
     { field: 'id', headerName: 'ID', width: 70 },
     { field: 'displayDate', headerName: 'Date/Time', width: 130 },
@@ -229,7 +223,7 @@ const Layoutstyle = () => {
     },
   ];
 
-  // new order modal
+  // <------------------------------------Take order Modal Open--------------------------------------------->
   const [isModalOpen, setIsModalOpen] = useState(false);
   const showModal = () => {
     setIsModalOpen(true);
@@ -243,7 +237,7 @@ const Layoutstyle = () => {
     formRef.current.resetFields(); 
   }
 
-// new order form 
+// <--------------------------------------take order Form---------------------------------->
 const formItemLayout = {
   labelCol: {
     xs: {
@@ -262,7 +256,6 @@ const formItemLayout = {
     },
   },
 };
-
 const onFinish = async (values) => {
   setLoder(true)
   const currentDate = new Date(); // Get the current date
@@ -304,13 +297,11 @@ const onFinishFailed = (errorInfo) => {
 
 
 
-// Header data
+// <-------------------------Header------------------------------------->
 const fetchAllPrices = async () => {
   const ordersRef = collection(db, 'new order');
-  
   // Create a query to filter documents where the status is 'delivered'
   const q = query(ordersRef, where('status', '==', 'delivered'));
-
   try {
     const querySnapshot = await getDocs(q);
     const prices = [];
@@ -318,14 +309,12 @@ const fetchAllPrices = async () => {
       const price = doc.data().total;
       prices.push(price);
     });
-
     return prices;
   } catch (error) {
     console.error('Error fetching prices:', error);
     return [];
   }
 };
-
 // Usage
 fetchAllPrices()
   .then((prices) => {
@@ -337,9 +326,8 @@ fetchAllPrices()
     console.error('Error:', error);
   });
 
-//  prices for current date
+// <-------------------------------Current Price------------------------------------->
 const fetchTotalPriceForCurrentDay = async () => {
-  // Get the current date
   const currentDate = new Date();
   const startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
   const endOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
@@ -377,6 +365,8 @@ fetchTotalPriceForCurrentDay()
 .catch((error) => {
   console.error('Error:', error);
 });
+
+// <--------------------------Cost Price----------------------------------------------->
 const fetchAllCosts = async () => {
   const ordersRef = collection(db, 'new order');
   const q = query(ordersRef, where('status', '==', 'delivered'));
@@ -406,7 +396,7 @@ fetchAllCosts()
     console.error('Error:', error);
   });
   
-// no of order
+// <---------------------------------No-of-order------------------------------->
 const getTotalOrderCount = async () => {
   const ordersRef = collection(db, 'new order');
 
@@ -431,9 +421,9 @@ setordernumber(orderCount)
 
 
   return(
-
     <Flex gap="middle" wrap="wrap">
     <Layout style={layoutStyle}>
+    {/* <=============================Sidebar========================================> */}
     <Sider width="12%" style={siderStyle}>
       <div className='slider' >
         <div
@@ -456,7 +446,9 @@ setordernumber(orderCount)
         </div>
       </div>
     </Sider>
+
       <Layout>
+        {/* <==================================================Header====================================> */}
         <Header style={headerStyle}>
             <div className='header-wrapper' >
       {/* Total Sell */}
@@ -493,6 +485,7 @@ setordernumber(orderCount)
             </div>
         </Header>
         <Content style={contentStyle}>
+          {/* <======================================Stats Tab Data====================================>  */}
 {
   activeDiv === "stats" ? 
   <div className='stats-content' >
@@ -528,6 +521,7 @@ data={{
   </div>
   : ""
 }
+{/* <============================================Delivered Order Tab Data ====================================> */}
 {
   activeDiv === "viewOrders" ?      
        <div className='order-form' >
@@ -548,7 +542,7 @@ data={{
        </div>
        : ""
 }
-
+{/* <==============================================Pending Tab Data =================================>  */}
 {  activeDiv ==='newOrder' ? 
 <>
 <div className='order-header' >New Orders</div>
@@ -743,6 +737,7 @@ theme="light"
 
 
         </Content>
+        {/* <=================================footer=====================================> */}
         <Footer style={footerStyle}>copyright© {new Date().getFullYear()} I-Click Optics POS software </Footer>
       </Layout>
     </Layout>
